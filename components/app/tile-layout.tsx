@@ -10,6 +10,8 @@ import {
   useVoiceAssistant,
 } from '@livekit/components-react';
 import { cn } from '@/lib/utils';
+import { EmotionDisplay } from '@/components/app/emotion-display';
+import type { EmotionState } from '@/hooks/useEmotionData';
 
 const MotionContainer = motion.create('div');
 
@@ -71,9 +73,10 @@ export function useLocalTrackRef(source: Track.Source) {
 
 interface TileLayoutProps {
   chatOpen: boolean;
+  emotionState: EmotionState;
 }
 
-export function TileLayout({ chatOpen }: TileLayoutProps) {
+export function TileLayout({ chatOpen, emotionState }: TileLayoutProps) {
   const {
     state: agentState,
     audioTrack: agentAudioTrack,
@@ -123,7 +126,7 @@ export function TileLayout({ chatOpen }: TileLayoutProps) {
                     delay: animationDelay,
                   }}
                   className={cn(
-                    'bg-background aspect-square h-[90px] rounded-md border border-transparent transition-[border,drop-shadow]',
+                    'bg-background relative aspect-square h-[90px] rounded-md border border-transparent transition-[border,drop-shadow]',
                     chatOpen && 'border-input/50 drop-shadow-lg/10 delay-200'
                   )}
                 >
@@ -142,6 +145,16 @@ export function TileLayout({ chatOpen }: TileLayoutProps) {
                       ])}
                     />
                   </BarVisualizer>
+
+                  {/* Emotion Display Overlay for Audio Agent */}
+                  <div className="pointer-events-none absolute -right-2 -top-2 z-10">
+                    <EmotionDisplay
+                      emotion={emotionState.agentEmotion}
+                      source="agent"
+                      size="md"
+                      showLabel={false}
+                    />
+                  </div>
                 </MotionContainer>
               )}
 
@@ -174,7 +187,7 @@ export function TileLayout({ chatOpen }: TileLayoutProps) {
                     },
                   }}
                   className={cn(
-                    'overflow-hidden bg-black drop-shadow-xl/80',
+                    'relative overflow-hidden bg-black drop-shadow-xl/80',
                     chatOpen ? 'h-[90px]' : 'h-auto w-full'
                   )}
                 >
@@ -184,6 +197,16 @@ export function TileLayout({ chatOpen }: TileLayoutProps) {
                     trackRef={agentVideoTrack}
                     className={cn(chatOpen && 'size-[90px] object-cover')}
                   />
+
+                  {/* Emotion Display Overlay for Avatar Agent */}
+                  <div className="pointer-events-none absolute bottom-2 right-2">
+                    <EmotionDisplay
+                      emotion={emotionState.agentEmotion}
+                      source="agent"
+                      size={chatOpen ? 'sm' : 'md'}
+                      showLabel={!chatOpen}
+                    />
+                  </div>
                 </MotionContainer>
               )}
             </AnimatePresence>
