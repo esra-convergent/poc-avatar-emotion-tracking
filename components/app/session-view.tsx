@@ -7,12 +7,14 @@ import type { AppConfig } from '@/app-config';
 import { ChatTranscript } from '@/components/app/chat-transcript';
 import { PreConnectMessage } from '@/components/app/preconnect-message';
 import { TileLayout } from '@/components/app/tile-layout';
+import { EmotionTestPanel } from '@/components/app/emotion-test-panel';
 import {
   AgentControlBar,
   type ControlBarControls,
 } from '@/components/livekit/agent-control-bar/agent-control-bar';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '../livekit/scroll-area/scroll-area';
+import { useEmotionData } from '@/hooks/useEmotionData';
 
 const MotionBottom = motion.create('div');
 
@@ -69,6 +71,9 @@ export const SessionView = ({
   const [chatOpen, setChatOpen] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
+  // Emotion tracking
+  const emotionState = useEmotionData();
+
   const controls: ControlBarControls = {
     leave: true,
     microphone: true,
@@ -106,7 +111,10 @@ export const SessionView = ({
       </div>
 
       {/* Tile Layout */}
-      <TileLayout chatOpen={chatOpen} />
+      <TileLayout chatOpen={chatOpen} emotionState={emotionState} />
+
+      {/* Emotion Test Panel */}
+      <EmotionTestPanel />
 
       {/* Bottom */}
       <MotionBottom
