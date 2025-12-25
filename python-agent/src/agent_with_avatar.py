@@ -17,6 +17,7 @@ from livekit.agents import (
     inference,
     llm,
     room_io,
+    APIConnectOptions,
 )
 from livekit.plugins import noise_cancellation, silero
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
@@ -82,12 +83,15 @@ async def my_agent(ctx: JobContext):
         "room": ctx.room.name,
     }
 
-    # Set up a voice AI pipeline
+    # Set up a voice AI pipeline with optimized TTS settings
     session = AgentSession(
         stt=inference.STT(model="assemblyai/universal-streaming", language="en"),
         llm=inference.LLM(model="openai/gpt-4.1-mini"),
         tts=inference.TTS(
-            model="cartesia/sonic-3", voice="9626c31c-bec5-4cca-baa8-f8ba9e84c8bc"
+            model="cartesia/sonic-3",
+            voice="9626c31c-bec5-4cca-baa8-f8ba9e84c8bc",
+            # Optimize for lower latency
+            sample_rate=16000,  # Match BitHuman's expected rate (critical!)
         ),
         turn_detection=MultilingualModel(),
         vad=ctx.proc.userdata["vad"],
@@ -145,19 +149,39 @@ async def my_agent(ctx: JobContext):
             logger.warning("⚠️  BITHUMAN_AVATAR_ID not set in .env.local - avatar disabled")
         else:
             try:
-                # Create avatar session
-                avatar = bithuman.AvatarSession(
-                    avatar_id=avatar_id,
-                    # Optional: Use model file instead
-                    # model_path="/path/to/avatar.imx",
+                # Step 2: EXTREME low-latency environment variables
+                # These MUST be set BEFORE creating AvatarSession
+                os.environ.setdefault("OUTPUT_WIDTH", "720")           # Even lower res for max speed
+                os.environ.setdefault("COMPRESS_METHOD", "NONE")       # No compression
+                os.environ.setdefault("PROCESS_IDLE_VIDEO", "False")   # Skip idle frames
+                os.environ.setdefault("OUTPUT_BUFFER_SIZE", "1")       # EXTREME: minimal buffering
+                os.environ.setdefault("INPUT_BUFFER_SIZE", "0")        # No audio buffering
+                os.environ.setdefault("NUM_THREADS", "-1")             # Auto-detect CPU cores
+
+                logger.info("⚡ EXTREME low-latency settings applied:")
+                logger.info(f"   OUTPUT_WIDTH=720, COMPRESS_METHOD=NONE, BUFFERS=1/0, THREADS=AUTO")
+
+                # Step 1: Create optimized connection options
+                conn_options = APIConnectOptions(
+                    max_retry=5,           # More retries for stability
+                    retry_interval=1.5,    # Faster retry interval
+                    timeout=20.0,          # Reasonable timeout
                 )
 
-                logger.info(f"🎭 Starting avatar: {avatar_id}")
+                # Create avatar session with optimizations
+                avatar = bithuman.AvatarSession(
+                    avatar_id=avatar_id,
+                    model="essence",       # 20-30% faster than "expression"
+                    conn_options=conn_options,
+                )
+
+                logger.info(f"🎭 Starting avatar: {avatar_id} (essence model)")
+                logger.info(f"⚡ Connection: 5 retries, 20s timeout")
 
                 # Start the avatar - it will join the room as a participant
                 await avatar.start(session, room=ctx.room)
 
-                logger.info("✅ Avatar started successfully!")
+                logger.info("✅ Avatar started successfully with optimizations!")
             except Exception as e:
                 logger.error(f"❌ Failed to start avatar: {e}")
                 logger.info("Falling back to voice-only mode")
