@@ -7,7 +7,7 @@ import type { AppConfig } from '@/app-config';
 import { ChatTranscript } from '@/components/app/chat-transcript';
 import { PreConnectMessage } from '@/components/app/preconnect-message';
 import { TileLayout } from '@/components/app/tile-layout';
-import { EmotionTestPanel } from '@/components/app/emotion-test-panel';
+// import { EmotionTestPanel } from '@/components/app/emotion-test-panel';
 import {
   AgentControlBar,
   type ControlBarControls,
@@ -114,7 +114,7 @@ export const SessionView = ({
       <TileLayout chatOpen={chatOpen} emotionState={emotionState} />
 
       {/* Emotion Test Panel */}
-      <EmotionTestPanel />
+      {/* <EmotionTestPanel /> */}
 
       {/* Bottom */}
       <MotionBottom
