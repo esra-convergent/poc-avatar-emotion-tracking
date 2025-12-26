@@ -14,6 +14,7 @@ import { EmotionDisplay } from '@/components/app/emotion-display';
 import type { EmotionState } from '@/hooks/useEmotionData';
 import { VRMAvatarAgent } from '@/components/avatar/VRMAvatarAgent';
 import { ReadyPlayerMeAgent } from '@/components/avatar/ReadyPlayerMeAgent';
+import { LiveKitAvatarScene } from '@/components/avatar/LiveKitAvatarScene';
 import { AgentAudioRenderer } from '@/components/avatar/AgentAudioRenderer';
 import { APP_CONFIG_DEFAULTS } from '@/app-config';
 
@@ -106,6 +107,14 @@ export function TileLayout({ chatOpen, emotionState }: TileLayoutProps) {
   const avatarType = APP_CONFIG_DEFAULTS.avatar?.type ?? 'vrm';
   const vrmUrl = APP_CONFIG_DEFAULTS.avatar?.vrmUrl ?? '/avatars/default-avatar.vrm';
   const glbUrl = APP_CONFIG_DEFAULTS.avatar?.glbUrl ?? '';
+
+  // Debug logging
+  console.log('TileLayout Debug:', {
+    isAvatar,
+    useAvatar,
+    avatarType,
+    shouldShowRPM: !isAvatar && useAvatar && avatarType === 'readyplayerme',
+  });
 
   return (
     <div className="pointer-events-none fixed inset-x-0 top-8 bottom-32 z-50 md:top-12 md:bottom-40">
@@ -214,45 +223,18 @@ export function TileLayout({ chatOpen, emotionState }: TileLayoutProps) {
               )}
 
               {!isAvatar && useAvatar && avatarType === 'readyplayerme' && (
-                // Ready Player Me Avatar Agent
-                <MotionContainer
+                // Ready Player Me Avatar Agent with LiveKit Audio
+                <div
                   key="rpm-agent"
-                  layoutId="rpm-agent"
-                  initial={{
-                    opacity: 0,
-                    scale: 0,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    scale: chatOpen ? 1 : 5,
-                  }}
-                  transition={{
-                    ...ANIMATION_TRANSITION,
-                    delay: animationDelay,
-                  }}
                   className={cn(
-                    'bg-background relative aspect-square h-[90px] rounded-md border border-transparent transition-[border,drop-shadow] overflow-hidden',
-                    chatOpen && 'border-input/50 drop-shadow-lg/10 delay-200',
-                    !chatOpen && 'h-auto w-full max-w-md'
+                    chatOpen ? 'bg-background relative rounded-md border border-input/50 drop-shadow-lg/10 aspect-square h-[90px]' : 'fixed inset-0 z-0'
                   )}
                 >
-                  <ReadyPlayerMeAgent
-                    glbUrl={glbUrl}
-                    audioElement={audioElementRef.current}
+                  <LiveKitAvatarScene
                     emotion={emotionState.agentEmotion}
                     className="w-full h-full"
                   />
-
-                  {/* Emotion Display Overlay for Ready Player Me Avatar */}
-                  {/* <div className="pointer-events-none absolute bottom-2 right-2 z-10">
-                    <EmotionDisplay
-                      emotion={emotionState.agentEmotion}
-                      source="agent"
-                      size={chatOpen ? 'sm' : 'md'}
-                      showLabel={!chatOpen}
-                    />
-                  </div> */}
-                </MotionContainer>
+                </div>
               )}
 
               {isAvatar && (

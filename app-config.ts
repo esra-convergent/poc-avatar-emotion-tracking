@@ -49,13 +49,12 @@ export const APP_CONFIG_DEFAULTS: AppConfig = {
   agentName: undefined,
 
   // Avatar Configuration
-  // NOTE: Disabled because using LiveKit native avatar (bitHuman/Tavus/Hedra)
-  // The avatar comes from the Python agent and appears as a video track
+  // Client-side Ready Player Me avatar with real-time lip-sync
   avatar: {
-    enabled: false, // Disabled - using LiveKit avatar instead
+    enabled: true, // Enabled - using client-side Ready Player Me avatar
     type: 'readyplayerme',
     vrmUrl: '/avatars/default-avatar.vrm',
-    glbUrl: 'https://models.readyplayer.me/694bd631220569853f2ea05b.glb',
+    glbUrl: '/models/646d9dcdc8a5f5bddbfac913.glb', // Local Ready Player Me model
     allowCustomUpload: false,
   },
 };
